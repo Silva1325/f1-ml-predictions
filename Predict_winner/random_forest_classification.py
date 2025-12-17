@@ -8,6 +8,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix, accuracy_score
 
+# Importing the dataset
 dataset = pd.read_csv(r'Datasources\Generated\processed_f1_data.csv')
 
 # Independent and dependent variables
