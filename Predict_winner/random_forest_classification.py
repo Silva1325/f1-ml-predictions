@@ -1,9 +1,6 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.calibration import LabelEncoder
+from sklearn.model_selection import GridSearchCV, cross_val_score
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix, accuracy_score
@@ -11,40 +8,42 @@ from sklearn.metrics import confusion_matrix, accuracy_score
 # Importing the dataset
 dataset = pd.read_csv(r'Datasources\Generated\processed_f1_data.csv')
 
-# Independent and dependent variables
-independent_variables = [
-    'year','round','circuitRef',
-    'constructorRef','previousConstructorPoints',
-    'driverRef','previousDriverPoints',
-    'startGridPosition','avgOvertakes'
+# Use LabelEncoding instead of OneHot for 800+ drivers to avoid "feature explosion"
+le_driver = LabelEncoder()
+le_constructor = LabelEncoder()
+le_circuit = LabelEncoder()
+
+dataset['driverRef'] = le_driver.fit_transform(dataset['driverRef'])
+dataset['constructorRef'] = le_constructor.fit_transform(dataset['constructorRef'])
+dataset['circuitRef'] = le_circuit.fit_transform(dataset['circuitRef'])
+
+# Train on 1950-2018, Test on 2019-2024 for a realistic simulation
+train_df = dataset[dataset['year'] < 2019]
+test_df = dataset[dataset['year'] >= 2019]
+
+features = [
+    'year', 'round', 'circuitRef', 'constructorRef', 
+    'previousConstructorPoints', 'driverRef', 'previousDriverPoints', 
+    'startGridPosition', 'avgOvertakes'
 ]
-dependent_variable = 'winner'
-X = dataset[independent_variables].values
-y = dataset[dependent_variable].values
 
-# Identify categorical and numerical columns
-ct = ColumnTransformer(
-    transformers=[('encoder', OneHotEncoder(drop='first', sparse_output=False, handle_unknown='ignore'), [2, 3, 5])],
-    remainder='passthrough'
-)
-X = ct.fit_transform(X)
+X_train, y_train = train_df[features], train_df['winner']
+X_test, y_test = test_df[features], test_df['winner']
 
-# Feature Scaling
+# 3. Feature Scaling
 sc = StandardScaler()
-X = sc.fit_transform(X)
+X_train = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
 
-# Splitting the dataset into the Training set and Test set
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0)
-
-# Fitting Random Forest Classification to the Training set
+# 4. Training the Random Forest Classification model on the Training set
 classifier = RandomForestClassifier(
-    n_estimators=200,
-    criterion='entropy',
-    random_state=0,
-    class_weight='balanced',    
-    max_depth=25,               
+    criterion='gini',
+    n_estimators=100,
+    max_depth=20,
+    min_samples_leaf=2,
     min_samples_split=5,
-    min_samples_leaf=2
+    class_weight='balanced_subsample',
+    random_state=42
 )
 classifier.fit(X_train, y_train)
 
@@ -54,18 +53,9 @@ y_pred_proba = classifier.predict_proba(X_test)[:, 1]
 
 # Making the Confusion Matrix
 #
-# [4158  617]
-# [  33  171]
-# 
-# Accuracy: 86.95%
-# 
-# True Negatives (Non-winners correctly predicted): 4,747
-# False Positives (Non-winners predicted as winners): 617
-# False Negatives (Winners predicted as non-winners): 33
-# True Positives (Winners correctly predicted): 171
-# 
-# 4,747 / (4,747 + 617) = 88.5% for non-winner class
-# 171 / (171 + 617) = 21.7% for winner class  
+# [2359   72]
+# [  66   62]
+#
 cm = confusion_matrix(y_test, y_pred)
 accuracy = accuracy_score(y_test, y_pred)
 print("Confusion Matrix:")
@@ -73,6 +63,42 @@ print(cm)
 print(f"Accuracy: {accuracy*100:.2f}%")
 
 # Applying k-Fold Cross Validation
-# Cross-Validation Accuracy: 87.18% (+/- 0.77%)
+# Cross-Validation Accuracy: 95.15% (+/- 0.56%)
 accuracies = cross_val_score(estimator = classifier, X = X_train, y = y_train, cv = 10)
 print(f"Cross-Validation Accuracy: {accuracies.mean()*100:.2f}% (+/- {accuracies.std()*100:.2f}%)")
+
+# Applying Grid Search CV to find the best model and the best parameters
+#parameters = [
+#    {
+#        'n_estimators': [100, 150, 200, 250, 300],
+#        'criterion': ['gini', 'entropy'],
+#        'max_depth': [20, 25, 30],
+#        'min_samples_split': [2, 5],
+#        'min_samples_leaf': [1, 2],
+#        'class_weight': ['balanced', 'balanced_subsample', None]
+#    }
+#]
+
+#
+# Best Parameters: {'class_weight': 'balanced_subsample', 'criterion': 'gini', 'max_depth': 20, 'min_samples_leaf': 2, 'min_samples_split': 5, 'n_estimators': 100}
+# Best Cross-Validation Score: 27.41%
+#
+#grid_search = GridSearchCV(
+#    estimator=RandomForestClassifier(random_state=0),
+#    param_grid=parameters,
+#    scoring='f1',
+#    cv=10,
+#    n_jobs=-1,
+#    verbose=2
+#)
+
+#print("Starting Grid Search CV...")
+#grid_search.fit(X_train, y_train)
+
+# Best parameters and score
+#print("\n" + "="*60)
+#print("GRID EARCH RESULTS")
+#print("="*60)
+#print(f"Best Parameters: {grid_search.best_params_}")
+#print(f"Best Cross-Validation Score: {grid_search.best_score_*100:.2f}%")
+#print("="*60)
