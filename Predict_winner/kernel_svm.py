@@ -1,9 +1,9 @@
 import pandas as pd
 from sklearn.calibration import LabelEncoder
 from sklearn.model_selection import GridSearchCV, cross_val_score
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix, accuracy_score
+from sklearn.svm import SVC
 
 # Importing the dataset
 dataset = pd.read_csv(r'Datasources\Generated\processed_f1_data.csv')
@@ -27,6 +27,7 @@ features = [
     'startGridPosition', 'avgOvertakes'
 ]
 
+# Setting up training and testing data
 X_train, y_train = train_df[features], train_df['winner']
 X_test, y_test = test_df[features], test_df['winner']
 
@@ -35,13 +36,12 @@ sc = StandardScaler()
 X_train = sc.fit_transform(X_train)
 X_test = sc.transform(X_test)
 
-# Training the Random Forest Classification model on the Training set
-classifier = RandomForestClassifier()
+# Training the Kernel SVM model on the Training set
+classifier = SVC(kernel= 'rbf')
 classifier.fit(X_train, y_train)
 
 # Predicting the Test set results
 y_pred = classifier.predict(X_test)
-y_pred_proba = classifier.predict_proba(X_test)[:, 1]
 
 # Making the Confusion Matrix
 cm = confusion_matrix(y_test, y_pred)
@@ -51,28 +51,27 @@ print(cm)
 print(f"Accuracy: {accuracy*100:.2f}%")
 
 # Applying k-Fold Cross Validation
-# Cross-Validation Accuracy (Default values) : 93.57% (+/- 3.76%)
+# Cross-Validation Accuracy (Default values) : 95.81% (+/- 0.05%)
 accuracies = cross_val_score(estimator = classifier, X = X_train, y = y_train, cv = 10)
 print(f"Cross-Validation Accuracy: {accuracies.mean()*100:.2f}% (+/- {accuracies.std()*100:.2f}%)")
+
 
 # Applying Grid Search CV to find the best model and the best parameters
 #parameters = [
 #    {
-#        'n_estimators': [100, 150, 200, 250, 300],
-#        'criterion': ['gini', 'entropy'],
-#        'max_depth': [20, 25, 30],
-#        'min_samples_split': [2, 5],
-#        'min_samples_leaf': [1, 2],
-#        'class_weight': ['balanced', 'balanced_subsample', None]
+#        'C': [0.1, 1, 10],
+#        'kernel': ['rbf', 'linear'],
+#        'gamma': ['scale', 'auto'],
+#        'probability': [True, False]
 #    }
 #]
 
 #
-# Best Parameters: {'class_weight': 'balanced_subsample', 'criterion': 'gini', 'max_depth': 20, 'min_samples_leaf': 2, 'min_samples_split': 5, 'n_estimators': 100}
-# Best Cross-Validation Score: 27.41%
+# Best Parameters: {'C': 10, 'gamma': 'auto', 'kernel': 'rbf', 'probability': True}
+# Best Cross-Validation Score: 3.72%
 #
 #grid_search = GridSearchCV(
-#    estimator=RandomForestClassifier(random_state=0),
+#    estimator=SVC(),
 #    param_grid=parameters,
 #    scoring='f1',
 #    cv=10,
@@ -90,3 +89,5 @@ print(f"Cross-Validation Accuracy: {accuracies.mean()*100:.2f}% (+/- {accuracies
 #print(f"Best Parameters: {grid_search.best_params_}")
 #print(f"Best Cross-Validation Score: {grid_search.best_score_*100:.2f}%")
 #print("="*60)
+
+
