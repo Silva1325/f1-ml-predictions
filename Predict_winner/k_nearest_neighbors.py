@@ -37,7 +37,7 @@ X_train = sc.fit_transform(X_train)
 X_test = sc.transform(X_test)
 
 # Training the K-NN model on the Training set
-classifier = KNeighborsClassifier()
+classifier = KNeighborsClassifier(weights='distance',)
 classifier.fit(X_train, y_train)
 
 # Predicting the Test set results
@@ -52,7 +52,7 @@ print(cm)
 print(f"Accuracy: {accuracy*100:.2f}%")
 
 # Applying k-Fold Cross Validation
-# Cross-Validation Accuracy (Default values) : 95.37% (+/- 0.23%)
+# Cross-Validation Accuracy (Default values) : 95.33% (+/- 0.24%)
 accuracies = cross_val_score(estimator = classifier, X = X_train, y = y_train, cv = 10)
 print(f"Cross-Validation Accuracy: {accuracies.mean()*100:.2f}% (+/- {accuracies.std()*100:.2f}%)")
 

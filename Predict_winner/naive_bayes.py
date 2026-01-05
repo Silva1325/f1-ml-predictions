@@ -38,7 +38,7 @@ X_train = sc.fit_transform(X_train)
 X_test = sc.transform(X_test)
 
 # Training the Naive Bayes model on the Training set
-classifier = GaussianNB()
+classifier = GaussianNB(priors=[0.95, 0.05])
 classifier.fit(X_train, y_train)
 
 # Predicting the Test set results

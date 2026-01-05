@@ -36,7 +36,7 @@ X_train = sc.fit_transform(X_train)
 X_test = sc.transform(X_test)
 
 # Training the Random Forest Classification model on the Training set
-classifier = RandomForestClassifier()
+classifier = RandomForestClassifier(class_weight='balanced')
 classifier.fit(X_train, y_train)
 
 # Predicting the Test set results
@@ -51,42 +51,43 @@ print(cm)
 print(f"Accuracy: {accuracy*100:.2f}%")
 
 # Applying k-Fold Cross Validation
-# Cross-Validation Accuracy (Default values) : 93.57% (+/- 3.76%)
+# Cross-Validation Accuracy (Default values) : 95.57% (+/- 0.32%)
 accuracies = cross_val_score(estimator = classifier, X = X_train, y = y_train, cv = 10)
 print(f"Cross-Validation Accuracy: {accuracies.mean()*100:.2f}% (+/- {accuracies.std()*100:.2f}%)")
 
 # Applying Grid Search CV to find the best model and the best parameters
-#parameters = [
-#    {
-#        'n_estimators': [100, 150, 200, 250, 300],
-#        'criterion': ['gini', 'entropy'],
-#        'max_depth': [20, 25, 30],
-#        'min_samples_split': [2, 5],
-#        'min_samples_leaf': [1, 2],
-#        'class_weight': ['balanced', 'balanced_subsample', None]
-#    }
-#]
+parameters = [
+    {
+        'n_estimators': [100, 150, 200, 250, 300],
+        'criterion': ['gini', 'entropy', 'log_loss'],
+        'max_depth': [None, 20, 25, 30],
+        'min_samples_split': [2, 5],
+        'min_samples_leaf': [1, 2],
+        'max_features': ['sqrt', 'log2', None],
+        'class_weight': ['balanced']
+    }
+]
 
 #
-# Best Parameters: {'class_weight': 'balanced_subsample', 'criterion': 'gini', 'max_depth': 20, 'min_samples_leaf': 2, 'min_samples_split': 5, 'n_estimators': 100}
+# Best Parameters: {'class_weight': 'balanced', 'criterion': 'gini', 'max_depth': 20, 'max_features': None, 'min_samples_leaf': 1, 'min_samples_split': 5, 'n_estimators': 300}
 # Best Cross-Validation Score: 27.41%
 #
-#grid_search = GridSearchCV(
-#    estimator=RandomForestClassifier(random_state=0),
-#    param_grid=parameters,
-#    scoring='f1',
-#    cv=10,
-#    n_jobs=-1,
-#    verbose=2
-#)
+grid_search = GridSearchCV(
+    estimator=RandomForestClassifier(random_state=0),
+    param_grid=parameters,
+    scoring='f1',
+    cv=10,
+    n_jobs=-1,
+    verbose=2
+)
 
-#print("Starting Grid Search CV...")
-#grid_search.fit(X_train, y_train)
+print("Starting Grid Search CV...")
+grid_search.fit(X_train, y_train)
 
 # Best parameters and score
-#print("\n" + "="*60)
-#print("GRID EARCH RESULTS")
-#print("="*60)
-#print(f"Best Parameters: {grid_search.best_params_}")
-#print(f"Best Cross-Validation Score: {grid_search.best_score_*100:.2f}%")
-#print("="*60)
+print("\n" + "="*60)
+print("GRID EARCH RESULTS")
+print("="*60)
+print(f"Best Parameters: {grid_search.best_params_}")
+print(f"Best Cross-Validation Score: {grid_search.best_score_*100:.2f}%")
+print("="*60)

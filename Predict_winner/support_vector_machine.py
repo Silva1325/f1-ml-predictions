@@ -38,7 +38,7 @@ X_train = sc.fit_transform(X_train)
 X_test = sc.transform(X_test)
 
 # Training the Support Vector Machine model on the Training set
-classifier = SVC(kernel = 'linear')
+classifier = SVC(kernel = 'linear', class_weight='balanced')
 classifier.fit(X_train, y_train)
 
 # Predicting the Test set results
@@ -52,6 +52,6 @@ print(cm)
 print(f"Accuracy: {accuracy*100:.2f}%")
 
 # Applying k-Fold Cross Validation
-# Cross-Validation Accuracy (Default values) : 95.84% (+/- 0.00%)
+# Cross-Validation Accuracy (Default values) : 73.86% (+/- 5.67%)
 accuracies = cross_val_score(estimator = classifier, X = X_train, y = y_train, cv = 10)
 print(f"Cross-Validation Accuracy: {accuracies.mean()*100:.2f}% (+/- {accuracies.std()*100:.2f}%)")

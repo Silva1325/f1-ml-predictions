@@ -38,7 +38,7 @@ X_train = sc.fit_transform(X_train)
 X_test = sc.transform(X_test)
 
 # Training the Logistic Regression model on the Training set
-classifier = LogisticRegression()
+classifier = LogisticRegression(class_weight='balanced')
 classifier.fit(X_train, y_train)
 
 # Predicting the Test set results
@@ -53,7 +53,7 @@ print(cm)
 print(f"Accuracy: {accuracy*100:.2f}%")
 
 # Applying k-Fold Cross Validation
-# Cross-Validation Accuracy (Default values) : 95.72% (+/- 0.38%)
+# Cross-Validation Accuracy (Default values) : 75.83% (+/- 6.24%)
 accuracies = cross_val_score(estimator = classifier, X = X_train, y = y_train, cv = 10)
 print(f"Cross-Validation Accuracy: {accuracies.mean()*100:.2f}% (+/- {accuracies.std()*100:.2f}%)")
 
