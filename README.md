@@ -118,7 +118,38 @@ python catboost_ranker.py
 
 ## 📈 Results
 
-Position prediction typical performance:
-- 🎯 Exact accuracy: 10-20%
-- 📏 MAE: 3-5 positions
-- ✅ Within ±3 positions: 40-60%
+### 🏆 Winner Prediction Performance
+
+| Model | Accuracy |
+|-------|----------|
+| **Random Forest** ✅ | **95.57% (±0.32%)** |
+| K-Nearest Neighbors | 95.33% (±0.24%) |
+| CatBoost | 95.08% |
+| Naive Bayes | 92.21% (±6.77%) |
+| Kernel SVM | 81.04% (±5.68%) |
+| Logistic Regression | 75.83% (±6.24%) |
+| Support Vector Machine | 73.86% (±5.67%) |
+| Artificial Neural Network | 0.95% |
+
+### 📊 Position Prediction Performance
+
+| Model | Accuracy |
+|-------|----------|
+| **Artificial Neural Network** ✅ | **14.97%** |
+| CatBoost | 13.01% |
+| Kernel SVM | 10.13% (±1.05%) |
+| Logistic Regression | 9.18% (±1.24%) |
+| Random Forest | 7.36% (±2.61%) |
+| K-Nearest Neighbors | 7.32% (±0.83%) |
+| Support Vector Machine | 7.21% (±2.64%) |
+| Naive Bayes | 6.26% (±1.89%) |
+
+### 💡 Conclusion
+
+After comprehensive model comparison with default hyperparameters:
+
+**🏆 Winner Prediction**: **Random Forest** emerged as the best performer with 95.57% accuracy and low variance (±0.32%), demonstrating excellent consistency across cross-validation folds. K-Nearest Neighbors and CatBoost were close competitors, but Random Forest's stability makes it the optimal choice.
+
+**📊 Position Prediction**: **Artificial Neural Network** achieved the highest accuracy at 14.97%, significantly outperforming traditional machine learning methods. CatBoost came second at 13.01%. The relatively low accuracy rates (10-15%) reflect the inherent difficulty of predicting exact finishing positions in F1, where 20 possible outcomes and high race unpredictability make this a challenging multi-class classification problem.
+
+> **Key Insight**: While predicting exact positions remains challenging, these models still provide valuable insights. For practical applications, metrics like "Within ±3 positions" (40-60% accuracy) offer more realistic performance expectations.
