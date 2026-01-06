@@ -1,7 +1,8 @@
 import pandas as pd
 from sklearn.calibration import LabelEncoder
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV, cross_val_score
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix, accuracy_score
 
@@ -27,6 +28,7 @@ features = [
     'startGridPosition', 'avgOvertakes'
 ]
 
+# Setting up training and testing data
 X_train, y_train = train_df[features], train_df['finishingPosition']
 X_test, y_test = test_df[features], test_df['finishingPosition']
 
@@ -35,8 +37,8 @@ sc = StandardScaler()
 X_train = sc.fit_transform(X_train)
 X_test = sc.transform(X_test)
 
-# Training the Random Forest Classification model on the Training set
-classifier = RandomForestClassifier()
+# Training the Logistic Regression model on the Training set
+classifier = LogisticRegression()
 classifier.fit(X_train, y_train)
 
 # Predicting the Test set results
@@ -51,6 +53,41 @@ print(cm)
 print(f"Accuracy: {accuracy*100:.2f}%")
 
 # Applying k-Fold Cross Validation
-# Cross-Validation Accuracy (Default values) : 7.36% (+/- 2.61%)
+# Cross-Validation Accuracy (Default values) : 9.18% (+/- 1.24%)
 accuracies = cross_val_score(estimator = classifier, X = X_train, y = y_train, cv = 10)
 print(f"Cross-Validation Accuracy: {accuracies.mean()*100:.2f}% (+/- {accuracies.std()*100:.2f}%)")
+
+# Applying Grid Search CV to find the best model and the best parameters
+#parameters = [
+#    {
+#        'C': [0.001, 0.01, 0.1, 1, 10, 100],           # Regularization strength
+#        'penalty': ['l1', 'l2', 'elasticnet'],         # Regularization type
+#        'solver': ['liblinear', 'saga'],               # Optimization algorithm
+#        'max_iter': [100, 200, 500, 1000],             # Maximum iterations
+#        'class_weight': [None, 'balanced'] 
+#    }
+#]
+
+#
+# Best Parameters: {'C': 0.1, 'class_weight': 'balanced', 'max_iter': 100, 'penalty': 'l1', 'solver': 'saga'}
+# Best Cross-Validation Score: 24.39%
+#
+#grid_search = GridSearchCV(
+#    estimator=LogisticRegression(),
+#    param_grid=parameters,
+#    scoring='f1',
+#    cv=10,
+#    n_jobs=-1,
+#    verbose=2
+#)
+
+#print("Starting Grid Search CV...")
+#grid_search.fit(X_train, y_train)
+
+# Best parameters and score
+#print("\n" + "="*60)
+#print("GRID EARCH RESULTS")
+#print("="*60)
+#print(f"Best Parameters: {grid_search.best_params_}")
+#print(f"Best Cross-Validation Score: {grid_search.best_score_*100:.2f}%")
+#print("="*60)

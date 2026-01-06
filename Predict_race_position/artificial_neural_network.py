@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-from sklearn.calibration import LabelEncoder
-from sklearn.model_selection import GridSearchCV, cross_val_score
+from sklearn.model_selection import cross_val_score
+from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import confusion_matrix, accuracy_score
 import tensorflow as tf
@@ -29,17 +29,32 @@ features = [
     'startGridPosition', 'avgOvertakes'
 ]
 
-X_train, y_train = train_df[features], train_df['winner']
-X_test, y_test = test_df[features], test_df['winner']
+X_train = train_df[features].values
+y_train = train_df['finishingPosition'].values
+X_test = test_df[features].values
+y_test = test_df['finishingPosition'].values
 
-# Handling class imbalance with SMOTE
-smote = SMOTE(random_state=42)
-X_train_balanced, y_train_balanced = smote.fit_resample(X_train, y_train)
+# Filter to positions 1-20 only
+train_mask = (y_train >= 1) & (y_train <= 20)
+X_train = X_train[train_mask]
+y_train = y_train[train_mask]
+
+test_mask = (y_test >= 1) & (y_test <= 20)
+X_test = X_test[test_mask]
+y_test = y_test[test_mask]
+
+# Convert to 0-indexed
+y_train = y_train - 1
+y_test = y_test - 1
 
 # Feature Scaling
 sc = StandardScaler()
 X_train = sc.fit_transform(X_train)
 X_test = sc.transform(X_test)
+
+# Handling class imbalance with SMOTE
+smote = SMOTE(random_state=42)
+X_train_balanced, y_train_balanced = smote.fit_resample(X_train, y_train)
 
 # Training the Artificial Neural Network model on the Training set
 ann = tf.keras.models.Sequential([
@@ -59,21 +74,27 @@ ann = tf.keras.models.Sequential([
     tf.keras.layers.Dropout(0.2),
     
     # Output layer
-    tf.keras.layers.Dense(units=1, activation='sigmoid')
+    tf.keras.layers.Dense(units=20, activation='softmax')
 ])
 
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
 
-ann.compile(optimizer = optimizer, loss = 'binary_crossentropy', metrics = ['accuracy'])
+ann.compile(optimizer='adam',
+    loss='sparse_categorical_crossentropy',
+    metrics=['accuracy']
+)
 
 ann.fit(X_train_balanced, y_train_balanced, batch_size = 32, epochs = 100)
 
 # Predict the Test Results
-y_pred = ann.predict(X_test)
-y_pred = (y_pred > 0.5)
+y_pred_proba = ann.predict(X_test)
+y_pred = np.argmax(y_pred_proba, axis=1)
+
+y_pred_positions = y_pred + 1
+y_test_positions = y_test + 1
 
 # Convert y_test to numpy array before reshaping
-print(np.concatenate((y_pred.reshape(len(y_pred), 1), y_test.values.reshape(len(y_test), 1)), 1))
+print(np.concatenate((y_pred.reshape(len(y_pred), 1), y_test.reshape(len(y_test), 1)), 1))
 
 # Making the confusion matrix
 cm = confusion_matrix(y_test, y_pred)
@@ -82,4 +103,5 @@ print(cm)
 ac = accuracy_score(y_test, y_pred)
 print(ac)
 
-# 0.949980461117624
+
+# 0.14966783899960923
