@@ -40,11 +40,11 @@ This project uses F1 data from Kaggle:
 **📅 Training Period**: 1950-2018  
 **🧪 Test Period**: 2019-2024
 
-### 🔄 Data Processing Pipeline
+### Data Processing Pipeline
 
 The raw F1 data undergoes several processing steps:
 
-#### 1️⃣ Merging Datasources
+#### 1. Merging Datasources
 Combines 5 separate datasets into one complete dataset:
 - Results
 - Races
@@ -52,22 +52,22 @@ Combines 5 separate datasets into one complete dataset:
 - Constructors
 - Constructor Standings
 
-#### 2️⃣ Feature Engineering
+#### 2. Feature Engineering
 
 After extensive experimentation, including testing weather data and other variables, three key features emerged as the most impactful for prediction accuracy:
 
-**⭐ previousDriverPoints**
+**previousDriverPoints**
 - Championship points accumulated by the driver before the current race
 - Captures current season performance and momentum
 - Reset to 0 at the start of each season
 - Uses `shift(1)` to prevent data leakage
 
-**🏁 previousConstructorPoints**
+**previousConstructorPoints**
 - Championship points accumulated by the team before the current race
 - Reflects car performance and team competitiveness throughout the season
 - Accounts for technical development and reliability
 
-**📈 avgOvertakes**
+**avgOvertakes**
 - Average positions gained/lost at specific circuits from previous years
 - Calculated as: `startGridPosition - finishingPosition`
 - Circuit-specific metric showing driver's historical performance at each track
@@ -76,25 +76,25 @@ After extensive experimentation, including testing weather data and other variab
 
 > **🌦️ Note on Weather Data**: Meteorological features were tested but showed minimal impact on prediction accuracy. The three features above proved most relevant for model performance.
 
-#### 3️⃣ Data Cleaning
+#### 3. Data Cleaning
 - ✅ Removes incomplete records
 - 📅 Sorts chronologically by year and round
 - 🏷️ Renames columns for clarity
 - 🗑️ Drops intermediate calculation columns
 
-#### 4️⃣ Target Variables
-- **🎯 finishingPosition**: Race finish position (1-20) for position prediction
-- **🥇 winner**: Binary flag (1/0) for winner prediction
+#### 4. Target Variables
+- **finishingPosition**: Race finish position (1-20) for position prediction
+- **winner**: Binary flag (1/0) for winner prediction
 
 > **🔒 Key Principle**: All features use only information available **before** the race to prevent data leakage.
 
 ## 🤖 Models
 
-### 🏆 Winner Prediction
+### Winner Prediction
 - **Type**: Binary classification (win/not win)
 - **Algorithms**: Logistic Regression, Random Forest, ANN
 
-### 📊 Position Prediction
+### Position Prediction
 - **Type**: Multi-class classification or regression
 - **Algorithms**: K-NN, Random Forest, Gradient Boosting, ANN, CatBoost Ranker
 - **📏 Evaluation Metrics**: 
@@ -122,7 +122,3 @@ Position prediction typical performance:
 - 🎯 Exact accuracy: 10-20%
 - 📏 MAE: 3-5 positions
 - ✅ Within ±3 positions: 40-60%
-
-## 📄 License
-
-See LICENSE file for details.
