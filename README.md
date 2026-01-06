@@ -33,63 +33,60 @@ cd f1-ml-predictions
 pip install pandas numpy scikit-learn tensorflow catboost imbalanced-learn matplotlib seaborn
 ```
 
-Data
-Dataset Source
-This project uses F1 data from Kaggle:
-Formula 1 World Championship (1950-2020)
-Training Period: 1950-2018
-Test Period: 2019-2024
-Data Processing Pipeline
+### Dataset Source
+This project uses F1 data from Kaggle:  
+[Formula 1 World Championship (1950-2020)](https://www.kaggle.com/datasets/rohanrao/formula-1-world-championship-1950-2020)
+
+**Training Period**: 1950-2018  
+**Test Period**: 2019-2024
+
+### Data Processing Pipeline
+
 The raw F1 data undergoes several processing steps:
-1. Merging Datasources
+
+#### 1. Merging Datasources
 Combines 5 separate datasets into one complete dataset:
+- Results
+- Races
+- Drivers
+- Constructors
+- Constructor Standings
 
-Results
-Races
-Drivers
-Constructors
-Constructor Standings
+#### 2. Feature Engineering
 
-2. Feature Engineering
 After extensive experimentation, including testing weather data and other variables, three key features emerged as the most impactful for prediction accuracy:
-previousDriverPoints
 
-Championship points accumulated by the driver before the current race
-Captures current season performance and momentum
-Reset to 0 at the start of each season
-Uses shift(1) to prevent data leakage
+**previousDriverPoints**
+- Championship points accumulated by the driver before the current race
+- Captures current season performance and momentum
+- Reset to 0 at the start of each season
+- Uses `shift(1)` to prevent data leakage
 
-previousConstructorPoints
+**previousConstructorPoints**
+- Championship points accumulated by the team before the current race
+- Reflects car performance and team competitiveness throughout the season
+- Accounts for technical development and reliability
 
-Championship points accumulated by the team before the current race
-Reflects car performance and team competitiveness throughout the season
-Accounts for technical development and reliability
+**avgOvertakes**
+- Average positions gained/lost at specific circuits from previous years
+- Calculated as: `startGridPosition - finishingPosition`
+- Circuit-specific metric showing driver's historical performance at each track
+- Only uses data from previous races at that circuit
+- Captures driver skill on different track layouts (street circuits vs. high-speed tracks)
 
-avgOvertakes
+> **Note on Weather Data**: Meteorological features were tested but showed minimal impact on prediction accuracy. The three features above proved most relevant for model performance.
 
-Average positions gained/lost at specific circuits from previous years
-Calculated as: startGridPosition - finishingPosition
-Circuit-specific metric showing driver's historical performance at each track
-Only uses data from previous races at that circuit
-Captures driver skill on different track layouts (street circuits vs. high-speed tracks)
+#### 3. Data Cleaning
+- Removes incomplete records
+- Sorts chronologically by year and round
+- Renames columns for clarity
+- Drops intermediate calculation columns
 
+#### 4. Target Variables
+- **finishingPosition**: Race finish position (1-20) for position prediction
+- **winner**: Binary flag (1/0) for winner prediction
 
-Note on Weather Data: Meteorological features were tested but showed minimal impact on prediction accuracy. The three features above proved most relevant for model performance.
-
-3. Data Cleaning
-
-Removes incomplete records
-Sorts chronologically by year and round
-Renames columns for clarity
-Drops intermediate calculation columns
-
-4. Target Variables
-
-finishingPosition: Race finish position (1-20) for position prediction
-winner: Binary flag (1/0) for winner prediction
-
-
-Key Principle: All features use only information available before the race to prevent data leakage.
+> **Key Principle**: All features use only information available **before** the race to prevent data leakage.
 
 ## Models
 
