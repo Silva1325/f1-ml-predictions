@@ -27,8 +27,8 @@ features = [
     'startGridPosition', 'avgOvertakes'
 ]
 
-X_train, y_train = train_df[features], train_df['winner']
-X_test, y_test = test_df[features], test_df['winner']
+X_train, y_train = train_df[features], train_df['finishingPosition']
+X_test, y_test = test_df[features], test_df['finishingPosition']
 
 # Feature Scaling
 sc = StandardScaler()
@@ -49,41 +49,3 @@ accuracy = accuracy_score(y_test, y_pred)
 print("Confusion Matrix:")
 print(cm)
 print(f"Accuracy: {accuracy*100:.2f}%")
-
-# Applying k-Fold Cross Validation
-# Cross-Validation Accuracy (Default values) : 95.57% (+/- 0.32%)
-accuracies = cross_val_score(estimator = classifier, X = X_train, y = y_train, cv = 10)
-print(f"Cross-Validation Accuracy: {accuracies.mean()*100:.2f}% (+/- {accuracies.std()*100:.2f}%)")
-
-# Applying Grid Search CV to find the best model and the best parameters
-parameters = [
-    {
-        'n_estimators': [100, 150, 200, 250, 300],
-        'criterion': ['gini', 'entropy', 'log_loss'],
-        'class_weight': ['balanced']
-    }
-]
-
-#
-# Best Parameters: {'class_weight': 'balanced', 'criterion': 'entropy', 'n_estimators': 200}
-# Best Cross-Validation Score: 27.41%
-#
-#grid_search = GridSearchCV(
-#    estimator=RandomForestClassifier(random_state=0),
-#    param_grid=parameters,
-#    scoring='f1',
-#    cv=10,
-#    n_jobs=-1,
-#    verbose=2
-#)
-#
-#print("Starting Grid Search CV...")
-#grid_search.fit(X_train, y_train)
-
-# Best parameters and score
-#print("\n" + "="*60)
-#print("GRID EARCH RESULTS")
-#print("="*60)
-#print(f"Best Parameters: {grid_search.best_params_}")
-#print(f"Best Cross-Validation Score: {grid_search.best_score_*100:.2f}%")
-#print("="*60)
